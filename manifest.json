@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Chrome Lite — Performance Booster",
   "version": "1.0.0",
-  "description": "Reduce Chrome CPU/RAM usage"
+  "description": "Reduce Chrome CPU/RAM usage",
   "minimum_chrome_version": "110",
 
   "permissions": [

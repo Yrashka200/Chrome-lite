@@ -1,0 +1,84 @@
+/* ═══════════════════════════════════════════════════════════
+   CHROME LITE — GLOBAL PERFORMANCE CSS
+   Активируется атрибутами на <html>, которые ставит perf.js
+   ═══════════════════════════════════════════════════════════ */
+
+/* ═══ 1. KILL ALL ANIMATIONS (opt-in via data-lite-anim) ═══ */
+html[data-lite-anim="1"] *,
+html[data-lite-anim="1"] *::before,
+html[data-lite-anim="1"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ═══ 2. KILL EXPENSIVE EFFECTS (opt-in via data-lite-fx) ═══ */
+html[data-lite-fx="1"] * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Убираем fixed backgrounds (очень дорогие при скролле) */
+html[data-lite-fx="1"] * {
+  background-attachment: scroll !important;
+}
+
+/* Убираем SVG-фильтры */
+html[data-lite-fx="1"] svg filter,
+html[data-lite-fx="1"] feGaussianBlur,
+html[data-lite-fx="1"] feDropShadow {
+  display: none !important;
+}
+
+/* ═══ 3. LAZY RENDER (opt-in via data-lite-lazy) ═══ */
+/* Огромный выигрыш: браузер не рендерит то, что ниже фолда */
+html[data-lite-lazy="1"] article,
+html[data-lite-lazy="1"] section,
+html[data-lite-lazy="1"] div[class*="post"],
+html[data-lite-lazy="1"] div[class*="card"],
+html[data-lite-lazy="1"] div[class*="item"],
+html[data-lite-lazy="1"] li {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 300px;
+}
+
+/* ═══ 4. FONT RENDERING (opt-in via data-lite-font) ═══ */
+html[data-lite-font="1"] * {
+  text-rendering: optimizeSpeed !important;
+  -webkit-font-smoothing: none !important;
+  font-kerning: none !important;
+  font-variant-ligatures: none !important;
+}
+
+/* ═══ 5. HIDE DECORATIVE ELEMENTS (opt-in via data-lite-deco) ═══ */
+html[data-lite-deco="1"] [class*="particle"],
+html[data-lite-deco="1"] [class*="confetti"],
+html[data-lite-deco="1"] [class*="snowflake"],
+html[data-lite-deco="1"] [class*="bubble"],
+html[data-lite-deco="1"] canvas[class*="background"],
+html[data-lite-deco="1"] canvas[id*="background"] {
+  display: none !important;
+}
+
+/* ═══ 6. REDUCE IMAGE QUALITY HINTS ═══ */
+html[data-lite-img="1"] img {
+  image-rendering: auto;
+}
+
+/* Отключаем lazy-заглушки с blur */
+html[data-lite-img="1"] img[style*="blur"] {
+  filter: none !important;
+}
+
+/* ═══ 7. PAUSE HIDDEN VIDEOS (JS тоже, но CSS подстрахует) ═══ */
+html[data-lite-pause="1"] video:not(:hover),
+html[data-lite-pause="1"] video[autoplay]:not(.playing) {
+  /* не трогаем основной контент, только фоновые */
+}

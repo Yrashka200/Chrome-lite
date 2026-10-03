@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 320px;
+    font: 13px -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #181818;
+    color: #eee;
+    padding: 14px;
+  }
+  h1 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .sub {
+    font-size: 11px;
+    color: #777;
+    margin-bottom: 12px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .12s;
+    user-select: none;
+  }
+  .row:hover { background: #1f1f1f; }
+  .row.disabled { opacity: .4; pointer-events: none; }
+
+  .label { font-size: 12px; font-weight: 500; }
+  .sub-label {
+    font-size: 10px;
+    color: #777;
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 36px;
+    height: 20px;
+    background: #444;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background .15s;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+  input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .15s;
+  }
+  input[type="checkbox"]:checked { background: #ff4444; }
+  input[type="checkbox"]:checked::before { transform: translateX(16px); }
+
+  .section {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    font-weight: 700;
+    margin: 14px 6px 4px;
+  }
+
+  .master {
+    background: #1f1f1f;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .master .label { font-size: 13px; font-weight: 700; color: #fff; }
+
+  .stat {
+    font-size: 10px;
+    color: #666;
+    text-align: center;
+    margin-top: 10px;
+    padding: 6px;
+    background: #1a1a1a;
+    border-radius: 6px;
+  }
+  .stat b { color: #4caf50; }
+</style>
+</head>
+<body>
+
+<h1> Chrome Lite</h1>
+<div class="sub"> Chrome better with this extension</div>
+
+<div class="master">
+  <span class="label">Enabled</span>
+  <input type="checkbox" id="enabled" />
+</div>
+
+<div class="section">Rendering</div>
+
+<label class="row" data-key="killAnimations">
+  <div>
+    <div class="label">Kill animations</div>
+    <div class="sub-label">No transitions, no keyframes</div>
+  </div>
+  <input type="checkbox" id="killAnimations" />
+</label>
+
+<label class="row" data-key="killEffects">
+  <div>
+    <div class="label">Kill visual effects</div>
+    <div class="sub-label">No shadows, blur, backdrop-filter</div>
+  </div>
+  <input type="checkbox" id="killEffects" />
+</label>
+
+<label class="row" data-key="lazyRender">
+  <div>
+    <div class="label">Lazy render</div>
+    <div class="sub-label">content-visibility: auto</div>
+  </div>
+  <input type="checkbox" id="lazyRender" />
+</label>
+
+<label class="row" data-key="fastFonts">
+  <div>
+    <div class="label">Fast font rendering</div>
+    <div class="sub-label">No anti-aliasing (uglier but faster)</div>
+  </div>
+  <input type="checkbox" id="fastFonts" />
+</label>
+
+<label class="row" data-key="hideDecorations">
+  <div>
+    <div class="label">Hide decorations</div>
+    <div class="sub-label">Particles, confetti, animated backgrounds</div>
+  </div>
+  <input type="checkbox" id="hideDecorations" />
+</label>
+
+<div class="section">Media & Timers</div>
+
+<label class="row" data-key="pauseBackgroundMedia">
+  <div>
+    <div class="label">Pause background media</div>
+    <div class="sub-label">Videos/audio paused on hidden tabs</div>
+  </div>
+  <input type="checkbox" id="pauseBackgroundMedia" />
+</label>
+
+<label class="row" data-key="throttleTimers">
+  <div>
+    <div class="label">Throttle timers</div>
+    <div class="sub-label">setInterval min 1s, 5s when hidden</div>
+  </div>
+  <input type="checkbox" id="throttleTimers" />
+</label>
+
+<label class="row" data-key="blockHoverVideos">
+  <div>
+    <div class="label">Block hover videos</div>
+    <div class="sub-label">No previews on hover</div>
+  </div>
+  <input type="checkbox" id="blockHoverVideos" />
+</label>
+
+<div class="section">Tabs</div>
+
+<label class="row" data-key="autoDiscard">
+  <div>
+    <div class="label">Auto-discard tabs</div>
+    <div class="sub-label">Free RAM from unused tabs</div>
+  </div>
+  <input type="checkbox" id="autoDiscard" />
+</label>
+
+<label class="row" data-key="protectPinned">
+  <div>
+    <div class="label">Protect pinned</div>
+    <div class="sub-label">Never discard pinned tabs</div>
+  </div>
+  <input type="checkbox" id="protectPinned" />
+</label>
+
+<label class="row" data-key="protectAudible">
+  <div>
+    <div class="label">Protect playing audio</div>
+    <div class="sub-label">Never discard tabs with sound</div>
+  </div>
+  <input type="checkbox" id="protectAudible" />
+</label>
+
+<div class="stat" id="stat">Checking…</div>
+
+<script src="popup.js"></script>
+
+<div class="test"></div>
+<h3> Have a nice day! </h3>
+
+</body>
+</html>

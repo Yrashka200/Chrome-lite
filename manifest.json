@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Lite — Performance Booster",
+  "version": "1.0.0",
+  "description": "Reduce Chrome CPU/RAM usage"
+  "minimum_chrome_version": "110",
+
+  "permissions": [
+    "storage",
+    "tabs",
+    "alarms",
+    "scripting",
+    "declarativeNetRequest"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Chrome Lite"
+  },
+
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "trackers",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["perf.js"],
+      "css": ["perf.css"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["perf.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

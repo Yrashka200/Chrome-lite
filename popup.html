@@ -100,6 +100,33 @@
     border-radius: 6px;
   }
   .stat b { color: #4caf50; }
+
+  .action-button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 9px 12px;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    background: #242424;
+    color: #eee;
+    font: inherit;
+    cursor: pointer;
+  }
+  .action-button:hover:not(:disabled) { background: #303030; }
+  .action-button:disabled { opacity: .5; cursor: wait; }
+  .action-status {
+    min-height: 14px;
+    margin-top: 6px;
+    color: #999;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .cache-estimate {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background: #1a1a1a;
+  }
 </style>
 </head>
 <body>
@@ -205,6 +232,14 @@
   </div>
   <input type="checkbox" id="protectAudible" />
 </label>
+
+<div class="section">Storage</div>
+<button class="action-button" id="clearCache" type="button">Clear Chrome Cache</button>
+<div class="action-status" id="cacheStatus" role="status" aria-live="polite"></div>
+<div class="cache-estimate">
+  <div class="label" id="cacheEstimate">Estimated cacheable data: 0 B</div>
+  <div class="sub-label">Approximation from unique cacheable responses observed since tracking started or last clear. Chrome may evict files, so actual disk usage can differ.</div>
+</div>
 
 <div class="stat" id="stat">Checking…</div>
 

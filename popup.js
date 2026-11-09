@@ -79,6 +79,62 @@ for (const key of CHECKBOXES) {
   });
 }
 
+const clearCacheButton = document.getElementById("clearCache");
+const cacheStatus = document.getElementById("cacheStatus");
+const cacheEstimate = document.getElementById("cacheEstimate");
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes / 1024;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+  return `${value.toFixed(1)} ${units[unitIndex]}`;
+}
+
+function renderCacheEstimate(bytes) {
+  cacheEstimate.textContent = `Estimated cacheable data: ${formatBytes(bytes)}`;
+}
+
+chrome.storage.local.get("liteCacheBytes").then(({ liteCacheBytes }) => {
+  renderCacheEstimate(Number.isSafeInteger(liteCacheBytes) && liteCacheBytes > 0 ? liteCacheBytes : 0);
+}).catch(error => {
+  console.error("Failed to read estimated cache size:", error);
+  cacheEstimate.textContent = "Estimated cacheable data: unavailable";
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.liteCacheBytes) {
+    renderCacheEstimate(changes.liteCacheBytes.newValue || 0);
+  }
+});
+
+clearCacheButton.addEventListener("click", async () => {
+  const confirmed = window.confirm(
+    "Clear Chrome's cached files? Cookies and browsing history will not be deleted."
+  );
+  if (!confirmed) return;
+
+  clearCacheButton.disabled = true;
+  cacheStatus.textContent = "Clearing cache…";
+
+  try {
+    await chrome.browsingData.removeCache({ since: 0 });
+    const result = await chrome.runtime.sendMessage({ type: "lite-cache-cleared" });
+    cacheStatus.textContent = result?.success
+      ? "Chrome cache cleared. Estimate reset."
+      : "Chrome cache cleared, but the estimate could not be reset.";
+  } catch (error) {
+    console.error("Failed to clear Chrome cache:", error);
+    cacheStatus.textContent = "Could not clear the cache. Please try again.";
+  } finally {
+    clearCacheButton.disabled = false;
+  }
+});
+
 // Клик по строке — переключает чекбокс
 document.querySelectorAll(".row[data-key]").forEach(row => {
   row.addEventListener("click", (e) => {

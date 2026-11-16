@@ -46,7 +46,7 @@ function render() {
     const el = document.getElementById(key);
     if (el) el.checked = !!cfg[key];
   }
-  // Рядки, зависящие от master
+
   document.querySelectorAll(".row[data-key]").forEach(row => {
     row.classList.toggle("disabled", !cfg.enabled);
   });
@@ -135,7 +135,7 @@ clearCacheButton.addEventListener("click", async () => {
   }
 });
 
-// Клик по строке — переключает чекбокс
+
 document.querySelectorAll(".row[data-key]").forEach(row => {
   row.addEventListener("click", (e) => {
     if (e.target.tagName === "INPUT") return;

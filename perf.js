@@ -1,9 +1,5 @@
 "use strict";
 
-/* ═══════════════════════════════════════════════════════════
-   CHROME LITE — CONTENT SCRIPT
-   Работает на всех сайтах. Минимум CPU, максимум эффекта.
-   ═══════════════════════════════════════════════════════════ */
 
 const DEFAULTS = {
   enabled: true,
@@ -18,25 +14,19 @@ const DEFAULTS = {
 };
 
 let cfg = { ...DEFAULTS };
-let active = false;        // активно ли сейчас
+let active = false;      
 let wasTimersPatched = false;
 
-// ═══════════════════════════════════════════════════════════
-//  1. РАННИЕ CSS-АТРИБУТЫ (до первой отрисовки!)
-// ═══════════════════════════════════════════════════════════
-// Ставим дефолт сразу, пока storage не загрузился.
 
 (function earlyAttrs() {
   const r = document.documentElement;
   if (!r) return;
-  // Дефолт: анимации и эффекты выключены — самое безопасное
+
   r.setAttribute("data-lite-anim", "1");
   r.setAttribute("data-lite-fx", "1");
 })();
 
-// ═══════════════════════════════════════════════════════════
-//  2. ЗАГРУЗКА НАСТРОЕК
-// ═══════════════════════════════════════════════════════════
+
 
 chrome.storage.local.get("lite").then(({ lite }) => {
   if (lite) cfg = { ...DEFAULTS, ...lite };
@@ -61,9 +51,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════
-//  3. ПРИМЕНЕНИЕ CSS-АТРИБУТОВ
-// ═══════════════════════════════════════════════════════════
+
 
 function toggleAttr(name, on) {
   const r = document.documentElement;
@@ -81,55 +69,32 @@ function applyAttrs() {
   toggleAttr("data-lite-pause", cfg.pauseBackgroundMedia);
 }
 
-// ═══════════════════════════════════════════════════════════
-//  4. ТРОТТЛИНГ ТАЙМЕРОВ
-//  Заменяем setInterval/setTimeout так, чтобы на неактивной
-//  вкладке они срабатывали раз в 1 секунду максимум.
-// ═══════════════════════════════════════════════════════════
 
-let realSetInterval = window.setInterval;
-let realSetTimeout = window.setTimeout;
-let realClearInterval = window.clearInterval;
-let realClearTimeout = window.clearTimeout;
+
+const realSetInterval = window.setInterval;
 
 function patchTimers() {
   if (wasTimersPatched) return;
   wasTimersPatched = true;
 
   window.setInterval = function(fn, delay, ...args) {
-    // Минимальный интервал 1 сек, и не чаще 1 раза в сек когда вкладка скрыта
-    const minDelay = Math.max(delay || 0, 1000);
+    if (typeof fn !== "function") {
+      return realSetInterval(fn, delay, ...args);
+    }
+
+    let lastRun = 0;
     return realSetInterval(function() {
-      if (document.hidden) {
-        // На скрытой вкладке — не чаще раза в 5 секунд
+      if (active && cfg.throttleTimers && document.hidden) {
         const now = Date.now();
-        if (now - (fn._last || 0) < 5000) return;
-        fn._last = now;
+        if (now - lastRun < 5000) return;
+        lastRun = now;
       }
       fn.apply(this, args);
-    }, minDelay);
+    }, delay, ...args);
   };
 
-  window.setTimeout = function(fn, delay, ...args) {
-    // На скрытой вкладке все таймеры растягиваем минимум до 1 сек
-    const effective = document.hidden ? Math.max(delay || 0, 1000) : (delay || 0);
-    return realSetTimeout(function() {
-      if (document.hidden && delay && delay < 1000) {
-        const now = Date.now();
-        if (now - (fn._last || 0) < 1000) return;
-        fn._last = now;
-      }
-      fn.apply(this, args);
-    }, effective);
-  };
-
-  window.clearInterval = realClearInterval;
-  window.clearTimeout = realClearTimeout;
 }
 
-// ═══════════════════════════════════════════════════════════
-//  5. ПАУЗА ФОНОВЫХ ВИДЕО / АУДИО
-// ═══════════════════════════════════════════════════════════
 
 let mediaWatcherStarted = false;
 
@@ -147,18 +112,18 @@ function startMediaWatcher() {
         } catch {}
       }
     });
-    // Также останавливаем requestAnimationFrame-циклы через visibilitychange
+
   };
 
-  // Основной триггер — видимость вкладки
+
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       pauseAll();
     }
-    // На возврате — ничего не делаем, пользователь сам нажмёт play
+
   }, { passive: true });
 
-  // Если видео появилось на скрытой вкладке — сразу пауза
+
   const mediaObs = new MutationObserver((mutations) => {
     if (!document.hidden || !active) return;
     for (const m of mutations) {
@@ -175,7 +140,7 @@ function startMediaWatcher() {
     }
   });
 
-  // Наблюдаем только когда скрыто
+
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       if (document.body) {
@@ -187,9 +152,7 @@ function startMediaWatcher() {
   }, { passive: true });
 }
 
-// ═══════════════════════════════════════════════════════════
-//  6. БЛОКИРОВКА HOVER-ВИДЕО (YouTube, Vimeo, соцсети)
-// ═══════════════════════════════════════════════════════════
+
 
 let hoverBlockerStarted = false;
 
@@ -197,7 +160,7 @@ function startHoverVideoBlocker() {
   if (hoverBlockerStarted) return;
   hoverBlockerStarted = true;
 
-  // Перехватываем события mouseenter на контейнерах видео
+
   document.addEventListener("mouseover", (e) => {
     if (!active || !cfg.blockHoverVideos) return;
     const target = e.target;
@@ -206,8 +169,7 @@ function startHoverVideoBlocker() {
     const video = target.closest("video") || target.querySelector?.("video");
     if (!video) return;
 
-    // Разрешаем видео в основном плеере (обычно #movie_player, video.js и т.д.)
-    if (video.closest("#movie_player, .html5-video-player, .video-js, [data-player]")) return;
+    if (!(video.autoplay || video.hasAttribute("autoplay")) || !video.muted) return;
 
     // Это preview/hover-видео — ставим preload=none и пауза
     try {
@@ -218,16 +180,11 @@ function startHoverVideoBlocker() {
   }, { passive: true, capture: true });
 }
 
-// ═══════════════════════════════════════════════════════════
-//  7. ОТСЛЕЖИВАНИЕ visibility ДЛЯ ПАУЗЫ RAF
-//  (не критично, Chrome сам тормозит RAF на скрытых вкладках,
-//   но подстрахуемся для старых версий)
-// ═══════════════════════════════════════════════════════════
+
 
 document.addEventListener("visibilitychange", () => {
   if (!active) return;
   if (document.hidden) {
-    // Chrome сам тормозит RAF, но мы можем дополнительно
-    // "разбудить" страницу позже — не трогаем.
+
   }
 }, { passive: true });
